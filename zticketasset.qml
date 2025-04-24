@@ -110,6 +110,8 @@ ApplicationWindow {
             anchors.fill: parent
             anchors.leftMargin: !window.portraitMode ? drawer.width : undefined
 
+            property var menuItems: ["Item A", "Item B", "Item C", "Another Item"]
+
             ToolButton {
                 action: navigateBackAction
                 visible: window.portraitMode
@@ -154,6 +156,12 @@ ApplicationWindow {
                     Action {
                         text: qsTr("About")
                         onTriggered: aboutDialog.open()
+                    }
+                    Repeater {
+                        model: menuItems
+                        delegate: MenuItem {
+                            text: modelData
+                        }
                     }
                 }
             }
