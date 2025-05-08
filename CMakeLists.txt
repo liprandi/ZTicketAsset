@@ -66,8 +66,8 @@ qt_add_qml_module(ZTicketAsset
         pages/DatePicker.qml
         global.js
     SOURCES
-        ztable.h
-        ztable.cpp
+
+
         zbackend.h
         zbackend.cpp
 

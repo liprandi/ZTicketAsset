@@ -9,6 +9,7 @@ class ZDatabase : public QObject
 {
     Q_OBJECT
 public:
+
     explicit ZDatabase(QObject *parent = nullptr);
     ~ZDatabase();
 
@@ -45,8 +46,10 @@ public:
 
 private:    // data used for interface
     QNetworkAccessManager* m_manager;
+
     static QString g_php;
     static const QByteArray g_nouser;
+    static const QString g_pwDefault;
 };
 
 #endif // ZDATABASE_H

@@ -10,8 +10,7 @@
 #define errdb {qDebug() <<  mysql_error(m_sql); return false;}
 
 const QByteArray ZDatabase::g_nouser("{\"name\": \".\", \"surname\": \".\", \"email\": \".\", \"password\": \".\", \"valid\": \"0\"");
-
-
+const QString ZDatabase::g_pwDefault = "58ec43f4b7eb08f7ddb3b2e9092b83d9d80fb66fe2929219d506ac0b384eb7d5";
 QString ZDatabase::g_php;
 
 ZDatabase::ZDatabase(QObject *parent) : QObject(parent)
@@ -83,7 +82,7 @@ void ZDatabase::login(const QString &nick, const QString &password_hash)
 {
     QNetworkRequest request;
 
-    QString str = QString("?sel=1&query=SELECT *,IF(password = '58ec43f4b7eb08f7ddb3b2e9092b83d9d80fb66fe2929219d506ac0b384eb7d5', '1', '2') AS valid FROM users WHERE nickname='%1' AND password='%2'").arg(nick, password_hash);
+    QString str = QString("?sel=1&query=SELECT *,IF(password = '%1', '1', '2') AS valid FROM users WHERE nickname='%2' AND password='%3'").arg(g_pwDefault, nick, password_hash);
     QUrl url(g_php + str);
 
     request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
@@ -117,11 +116,10 @@ void ZDatabase::newUser(const QString &name, const QString &surname, const QStri
 {
     QNetworkRequest request;
 
-    QString pw = QCryptographicHash::hash("C4mb14m1", QCryptographicHash::Sha256).toHex();
     QString nick = QString("%1.%2").arg(name.toLower(), surname.toLower());
     QString str = QString("?sel=2&query=REPLACE INTO users (nickname, name, surname, email, password) "
                         "values ('%1', '%2', '%3', '%4', '%5')")
-                    .arg(nick, name, surname, email, pw);
+                    .arg(nick, name, surname, email, g_pwDefault);
 
     QUrl url(g_php + str);
 

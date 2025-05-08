@@ -8,7 +8,6 @@
 #include <QVariant>
 #include "zdatabase.h"
 #include "zbackend.h"
-#include "ztable.h"
 
 QObject *qmlObj = 0l;
 
@@ -25,13 +24,13 @@ int main(int argc, char *argv[])
 
     QSettings settings;
     if(qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
-        QQuickStyle::setStyle(settings.value("style").toString());
+        QQuickStyle::setStyle(settings.value("style", "Material").toString());
 
     ZDatabase::setPhpAddress(settings.value("php_address", "https://www.liprandi.com/ticket/liprandi_ticket.php").toString());
 
     QQmlApplicationEngine engine;
     // Register your QAbstractTableModel subclass
-    qmlRegisterType<ZTable>("ZTicketAsset", 1, 0, "ZTable");
+
     qmlRegisterType<ZBackEnd>("ZTicketAsset", 1, 0, "ZBackEnd");
 
     QStringList builtInStyles = { QLatin1String("Basic"), QLatin1String("Fusion"),
@@ -51,7 +50,8 @@ int main(int argc, char *argv[])
     if(engine.rootObjects().isEmpty())
         return -1;
 
-    qmlObj = engine.rootObjects()[0];
+    const auto& list = engine.rootObjects();
+    qmlObj = list[0];
 
     return app.exec();
 }
