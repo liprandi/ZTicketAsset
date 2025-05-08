@@ -2,7 +2,7 @@
 #include <QUrl>
 #include <QFile>
 #include <QTextStream>
-
+//#include <chrono>
 #include "zbackend.h"
 #include "zdatabase.h"
 
@@ -10,6 +10,8 @@ extern QObject *qmlObj;
 
 ZBackEnd::ZBackEnd(QObject *parent)
     : QObject{parent}
+    , m_needUpdateAssets(false)
+    , m_needUpdateTickets(false)
     , m_sequence(0)
 {
     qDebug() << "create back-end object";
@@ -30,9 +32,10 @@ ZBackEnd::ZBackEnd(QObject *parent)
     {
         qDebug() << "login user: " << reply["nickname"];
 
-        m_credentials = reply;
+        m_credentials = reply.object();
         if(m_credentials["nickname"].isString())
-            emit credentialsChanged(m_credentials.toJson());
+            emit credentialsChanged();
+        m_needUpdateAssets = m_needUpdateTickets = true;
     });
 
     connect(&m_db, &ZDatabase::sNewUser, this, [=, this](const QString& nick)
@@ -52,7 +55,7 @@ ZBackEnd::ZBackEnd(QObject *parent)
         if(m_newasset.length() > 0)
         {
             auto asset = m_newasset.takeFirst();
-            addAsset({asset[0], asset[1],  "Laptop", asset[2]}, QDateTime::fromString(asset[3], "dd/MM/yyyy"));
+            addAsset({asset[0], asset[1],  asset[2], asset[3]}, QDateTime::fromString(asset[4], "dd/MM/yyyy"));
         }
     });
 
@@ -65,7 +68,33 @@ ZBackEnd::ZBackEnd(QObject *parent)
             auto link = m_newlink.takeFirst();
             addLink(link);
         }
+        else
+        {
+            readAssets();
+        }
     });
+
+    connect(&m_db, &ZDatabase::sOpenTicket, this, [=, this](const QString& id)
+    {
+        qDebug() << "Opened Ticket: " << id;
+
+        readTickets();
+    });
+    connect(&m_db, &ZDatabase::sNewTicketStep, this, [=, this](const QString&  id)
+    {
+        qDebug() << "Add step to Ticket: " << id;
+
+        readTickets();
+    });
+    connect(&m_db, &ZDatabase::sCloseTicket, this, [=, this](const QString&  id)
+    {
+        qDebug() << "Ticket closed: " << id;
+
+        readTickets();
+    });
+
+    connect(&m_db, &ZDatabase::sQuery, this, &ZBackEnd::queried);
+
 }
 
 
@@ -121,6 +150,107 @@ void ZBackEnd::addLink(const QStringList &newlink)
     }
 }
 
+void closeTicket(const QStringList &ticket); // id
+
+// [0] = id
+// [1] = user
+// [2] = asset
+// [3] = description
+void ZBackEnd::newTicket(const QStringList &ticket)
+{
+    qDebug() << "newTicket: " << ticket;
+    if(ticket.length() == 4 && !ticket[0].isEmpty() && !ticket[1].isEmpty()  && !ticket[2].isEmpty()  && !ticket[3].isEmpty())
+    {
+        m_db.openTicket(ticket[0], ticket[1], ticket[2],  ticket[3]);
+    }
+}
+
+// [0] = id
+// [1] = emoji
+// [2] = description
+void ZBackEnd::addTicketStep(const QStringList &step)
+{
+    qDebug() << "addTicketStep: " << step;
+    if(step.length() == 3 && !step[0].isEmpty() && !step[1].isEmpty()  && !step[2].isEmpty())
+    {
+        int status = step[1][0].unicode();
+        m_db.newTicketStep(step[0], status, step[2]);
+    }
+}
+
+// [0] = id
+void ZBackEnd::closeTicket(const QStringList &ticket)
+{
+    qDebug() << "closeTicket: " << ticket;
+    if(ticket.length() == 1 && !ticket[0].isEmpty())
+    {
+        m_db.closeTicket(ticket[0]);
+    }
+}
+
+void ZBackEnd::readAssets()
+{
+    if(m_assets.isEmpty() || m_needUpdateAssets)
+    {
+        m_needUpdateAssets = true;
+
+        QString str = QString("SELECT assets.id, assets.type, assets.model, assets.description, IFNULL(assets.deployed, '2025-01-01T00:00:00') AS date, asset_user.user FROM assets, asset_user WHERE asset_user.asset = assets.id AND (asset_user.user='%1' OR asset_user.user='.')").arg(m_credentials["nickname"].toString("."));
+
+        m_db.query(str, id_assets);
+//        std::unique_lock<std::mutex> lock(m_mtxAssets);
+//        m_cvAssets.wait_for(lock, std::chrono::seconds(10), [this]{ return !m_needUpdateAssets; });
+        emit assetsUpdated();
+    }
+}
+
+void ZBackEnd::readTickets()
+{
+    if(m_tickets.isEmpty() || m_needUpdateTickets)
+    {
+        m_needUpdateTickets = true;
+
+        QString str = QString("SELECT ticket, dt_open, user, asset, status, description FROM tickets WHERE user = '%1'").arg(m_credentials["nickname"].toString("."));
+
+        m_db.query(str, id_tickets);
+  //      std::unique_lock<std::mutex> lock(m_mtxTickets);
+  //      m_cvTickets.wait_for(lock, std::chrono::seconds(10), [this]{ return !m_needUpdateTickets; });
+        emit ticketsUpdated();
+    }
+}
+
+
+void ZBackEnd::queried(int id, const QJsonDocument& reply)
+{
+    qDebug() << "queried: " << id;
+    qDebug() << "reply: " << reply;
+
+    switch(id)
+    {
+    case id_assets:
+        if(reply.isArray())
+        {
+            m_assets = reply.array();
+//            std::unique_lock<std::mutex> lock(m_mtxAssets); // Acquire the mutex
+            m_needUpdateAssets = false;
+//            m_cvAssets.notify_one();
+        }
+        break;
+    case id_tickets:
+        if(reply.isArray())
+        {
+            m_tickets = reply.array();
+//            std::unique_lock<std::mutex> lock(m_mtxTickets); // Acquire the mutex
+            m_needUpdateTickets = false;
+//            m_cvTickets.notify_one();
+        }
+        break;
+    default:
+        {
+
+        }
+    }
+}
+
 
 void ZBackEnd::importFromCsv(const QString& url)
 {
@@ -149,7 +279,7 @@ void ZBackEnd::importFromCsv(const QString& url)
                     item[field[i]] = list[i];
                 }
                 m_newuser.append({item["Name"], item["Surname"], item["Email"]});
-                m_newasset.append({item["IdAsset"], item["Asset"], item["Os"], item["Deploy"]});
+                m_newasset.append({item["IdAsset"], item["Asset"], item["Os"], "Laptop", item["Deploy"]});
                 m_newlink.append({item["IdAsset"], item["Email"]});
             }
             header = false;

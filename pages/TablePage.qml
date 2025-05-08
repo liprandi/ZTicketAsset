@@ -1,38 +1,135 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import Qt.labs.qmlmodels
+import QtQuick.Layouts
 import ZTicketAsset
+import "../global.js" as Global
+
+import ZStyle
 
 Item {
-    width: 1126
-    height: 800
+    id: tablepage
 
-    Rectangle {
-        id: rectangle
-        color: "#ffffff"
-        anchors.fill: parent
-        anchors.rightMargin: 0
-        anchors.bottomMargin: 0
-        anchors.leftMargin: 0
-        anchors.topMargin: 0
+    ColumnLayout {
+        // The main application layout
+        anchors.fill :parent
 
-        TableView {
-            anchors.fill: parent
-            columnSpacing: 1
-            rowSpacing: 1
-            clip: true
+        ListView {
+            id: myModel // Give your model an ID so you can refer to it
+            model: TableView
 
-            model: ZTable {
+
+            // Function to populate the model from a JSON array
+            function populateModel(jsonArray) {
+                clear() // Clear any existing data
+                for (var i = 0; i < jsonArray.length; i++) {
+                    append(jsonArray[i])
+                }
             }
 
-            delegate: Rectangle {
-                implicitHeight: 50
-                implicitWidth: 100
-                border.width: 1
+            // Example of how you might load the JSON data (replace with your actual loading mechanism)
+            Component.onCompleted: {
+                populateModel(Global.assets);
+            }
 
-                Text {
-                    text: display
-                    anchors.centerIn: parent
+            spacing: 15
+            clip: true
+
+            header:  Rectangle {
+                height: 32
+                width: parent.width
+                color: "#F0F1F3"
+
+                RowLayout {
+                    anchors.fill: parent
+
+                    component HeaderText : Text {
+                        Layout.alignment: Qt.AlignVCenter
+                        horizontalAlignment: Qt.AlignHCenter
+
+                        font.pixelSize: 12
+                        color: "#667085"
+                    }
+                    HeaderText {
+                        id: headerId
+                        text: qsTr("id")
+                        Layout.preferredWidth: myModel.width * 0.3
+                    }
+                    HeaderText {
+                        id: headerType
+                        text: qsTr("type")
+                        Layout.preferredWidth: myModel.width * 0.25
+                    }
+                    HeaderText {
+                        id: headerModel
+                        text: qsTr("model")
+                        Layout.preferredWidth: myModel.width * 0.25
+                    }
+                    HeaderText {
+                        id: headerDescription
+                        text: qsTr("description")
+                        Layout.preferredWidth: myModel.width * 0.2
+                    }
+                    HeaderText {
+                        id: headerDate
+                        text: qsTr("date")
+                        Layout.preferredWidth: myModel.width * 0.2
+                    }
+                }
+            }
+
+            delegate: Item {
+                id: assetInfo
+
+                required property var modelData
+
+                width: myModel.width
+                height: 25
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 5
+                    anchors.rightMargin: 5
+
+                    Rectangle {
+                        id: emojiItem
+                        Layout.alignment: Qt.AlignVCenter
+                        implicitWidth: 36
+                        implicitHeight: 21
+                        radius: 6
+                        color: 'green'
+                    }
+
+                    Text {
+                        Layout.preferredWidth: assetInfo.width * 0.3 - emojiItem.width
+                        horizontalAlignment: Qt.AlignLeft
+                        leftPadding: 5
+                        text: assetInfo.modelData.id
+                    }
+
+                    Text {
+                        Layout.preferredWidth: assetInfo.width * 0.25
+                        horizontalAlignment: Qt.AlignHCenter
+                        text: assetInfo.modelData.type
+                    }
+
+                    Text {
+                        Layout.preferredWidth: assetInfo.width * 0.25
+                        horizontalAlignment: Qt.AlignHCenter
+                        text: assetInfo.modelData.model
+                    }
+                    Text {
+                        Layout.preferredWidth: assetInfo.width * 0.25
+                        horizontalAlignment: Qt.AlignHCenter
+                        text: assetInfo.modelData.description
+                    }
+                    Text {
+                        Layout.preferredWidth: assetInfo.width * 0.25
+                        horizontalAlignment: Qt.AlignHCenter
+                        text: assetInfo.modelData.date
+                    }
+
                 }
             }
         }

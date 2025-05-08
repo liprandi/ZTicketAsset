@@ -64,7 +64,7 @@ void ZDatabase::query(const QString& qString, uint sel)
         int token = buffer.indexOf('\r');
         if(token > 0)
         {
-            int id = buffer.mid(3, token - 3).toInt();
+            int id = buffer.mid(4, token - 4).toInt();
 
             QJsonParseError err;
             QByteArray json = buffer.mid(token);
@@ -212,10 +212,19 @@ void ZDatabase::removeAsset(const QString &id)
 void ZDatabase::newLink(const QString &asset, const QString &email)
 {
     QNetworkRequest request;
-
-    QString str = QString("?sel=6&query=REPLACE INTO asset_user (asset, user) "
-                  "VALUES ('%1', (SELECT nickname FROM users WHERE email='%2'))")
-                      .arg(asset, email);
+    QString str;
+    if(email.compare(".") == 0)
+    {
+        str = QString("?sel=6&query=REPLACE INTO asset_user (asset, user) "
+                              "VALUES ('%1', '.')")
+                          .arg(asset);
+    }
+    else
+    {
+        str = QString("?sel=6&query=REPLACE INTO asset_user (asset, user) "
+                      "VALUES ('%1', (SELECT nickname FROM users WHERE email='%2'))")
+                          .arg(asset, email);
+    }
     QUrl url(g_php + str);
 
     request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
@@ -256,16 +265,18 @@ void ZDatabase::removeLink(const QString &asset, const QString &nick)
     });
 
 }
-void ZDatabase::openTicket(int id, const QString &asset, const QString &nick, const QString &description)
+void ZDatabase::openTicket(const QString &id, const QString &nick, const QString &asset, const QString &description)
 {
     QNetworkRequest request;
 
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
-    QString str = QString(u8"?sel=8&query=INSERT INTO ticket (ticket, dt_open, status, user, asset, description) "
-                          "values (%1, '%2', '😭', '%3', '%4', '%5')")
-                      .arg(id).arg(dt, nick, asset, description);
+    uint status = U'😭';
+
+    QString str = QString(u8"?sel=8&query=INSERT INTO tickets (ticket, dt_open, status, user, asset, description) "
+                          "values ('%1', '%2', %3, '%4', '%5', '%6')")
+                      .arg(id, dt).arg(status).arg(nick, asset, description);
 
     QUrl url(g_php + str);
 
@@ -280,19 +291,20 @@ void ZDatabase::openTicket(int id, const QString &asset, const QString &nick, co
         if(buffer.contains("sel=8\r[]"))
             emit sOpenTicket(id);
         else
-            emit sOpenTicket(-1);
+            emit sOpenTicket("");
     });
 
 }
-void ZDatabase::closeTicket(int id)
+void ZDatabase::closeTicket(const QString &id)
 {
     QNetworkRequest request;
 
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
-    QString str = QString("?sel=9&query=UPDATE ticket SET dt_close='%1', status='😀' WHERE ticket=%2")
-                      .arg(dt).arg(id);
+    uint status = U'😀';
+    QString str = QString("?sel=9&query=UPDATE tickets SET dt_close='%1', status=%2 WHERE ticket='%3'")
+                      .arg(dt).arg(status).arg(id);
 
     QUrl url(g_php + str);
 
@@ -307,17 +319,17 @@ void ZDatabase::closeTicket(int id)
         if(buffer.contains("sel=9\r[]"))
             emit sCloseTicket(id);
         else
-            emit sCloseTicket(-1);
+            emit sCloseTicket("");
     });
 
 }
-void ZDatabase::newTicketStep(int id, const QString emoji, const QString &description)
+void ZDatabase::newTicketStep(const QString &id, int status, const QString &description)
 {
     QNetworkRequest request;
 
     QString str = QString("?sel=10&query=INSERT INTO steps (ticket, emoji, description) "
-                          "values (%1, '%2', '%3')")
-                      .arg(id).arg(emoji, description);
+                          "values ('%1', %2, '%3')")
+                      .arg(id).arg(status).arg(description);
 
     QUrl url(g_php + str);
 
@@ -332,7 +344,7 @@ void ZDatabase::newTicketStep(int id, const QString emoji, const QString &descri
         if(buffer.contains("sel=10\r[]"))
             emit sNewTicketStep(id);
         else
-            emit sNewTicketStep(-1);
+            emit sNewTicketStep("");
     });
 
 }

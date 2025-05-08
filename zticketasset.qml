@@ -46,17 +46,30 @@ ApplicationWindow {
         {
                 // Connect the C++ signal to a QML function
             backend.credentialsChanged.connect(handleLogin);
+            backend.assetsUpdated.connect(handleNewAsset);
+            backend.ticketsUpdated.connect(handleNewTicket);
         }
-
-
     }
 
-    function handleLogin(jsonData)
+    function handleLogin()
     {
-        console.log("Received JSON:", jsonData);
-        Global.logJson = JSON.parse(jsonData);
-        login( Global.logJson);
+        Global.logJson = backend.credentials;
+        console.log("Received JSON:", Global.logJson);
+        login(Global.logJson);
+        backend.readAssets();
+        backend.readTickets();
+        Global.assets = backend.assets;
+        Global.tickets = backend.tickets;
     }
+    function handleNewAsset()
+    {
+
+    }
+    function handleNewTicket()
+    {
+
+    }
+
     function login(credentials)
     {
         const name = credentials['name'].toLowerCase();
@@ -86,7 +99,7 @@ ApplicationWindow {
         onTriggered: {
             if (stackView.depth > 1) {
                 stackView.pop()
-                listView.currentIndex = -1
+                listViewOption.currentIndex = -1
             } else {
                 drawer.open()
             }
@@ -110,11 +123,35 @@ ApplicationWindow {
             anchors.fill: parent
             anchors.leftMargin: !window.portraitMode ? drawer.width : undefined
 
-            property var menuItems: ["Item A", "Item B", "Item C", "Another Item"]
-
             ToolButton {
                 action: navigateBackAction
                 visible: window.portraitMode
+            }
+            AbstractButton {
+                Layout.preferredWidth: 25
+                Layout.preferredHeight: 25
+                Layout.alignment: Qt.AlignVCenter
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 4
+                    color: "#192CDE85"
+                    border.color: "#DDE2E8"
+                    border.width: 1
+                }
+
+                Image {
+                    source: "qrc:/icons/update.svg"
+                    fillMode: Image.PreserveAspectFit
+                    anchors.fill: parent
+                    sourceSize.width: width
+                    sourceSize.height: height
+                }
+
+                onClicked: {
+                    root.colors.refreshCurrentPage()
+                    root.colorViewUsers.refreshCurrentPage()
+                }
             }
 
             Label {
@@ -189,7 +226,8 @@ ApplicationWindow {
 
             model: ListModel {
                 ListElement { icon: "images/user.png"; title: qsTr("Login"); source: "qrc:/pages/LoginPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Table"); source: "qrc:/pages/TablePage.qml" }
+                ListElement { icon: "images/asset.png"; title: qsTr("Assets"); source: "qrc:/pages/AssetTable.qml" }
+                ListElement { icon: "images/ticket.png"; title: qsTr("Tickets"); source: "qrc:/pages/TicketTable.qml" }
 /*
                 ListElement { icon: "images/item.png"; title: qsTr("Button"); source: "qrc:/pages/ButtonPage.qml" }
                 ListElement { icon: "images/item.png"; title: qsTr("CheckBox"); source: "qrc:/pages/CheckBoxPage.qml" }

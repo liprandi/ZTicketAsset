@@ -25,9 +25,9 @@ signals:
     void sRemoveAsset(const QString& id);
     void sNewLink(const QString& id);
     void sRemoveLink(const QString& id);
-    void sOpenTicket(int id);
-    void sCloseTicket(int id);
-    void sNewTicketStep(int id);
+    void sOpenTicket(const QString& id);
+    void sCloseTicket(const QString& id);
+    void sNewTicketStep(const QString& id);
 
 
 public:
@@ -39,9 +39,9 @@ public:
     void removeAsset(const QString &id);
     void newLink(const QString &asset, const QString &nick);
     void removeLink(const QString &asset, const QString &nick);
-    void openTicket(int id, const QString &asset, const QString &nick, const QString &description);
-    void closeTicket(int id);
-    void newTicketStep(int id, const QString emoji, const QString &description);
+    void openTicket(const QString &id, const QString &nick, const QString &asset, const QString &description);
+    void closeTicket(const QString &id);
+    void newTicketStep(const QString &id, int status, const QString &description);
 
 private:    // data used for interface
     QNetworkAccessManager* m_manager;

@@ -59,7 +59,7 @@ ScrollablePage {
             TextField {
                 id: username
                 width: parent.width
-                placeholderText: qsTr("e-mail")
+                placeholderText: qsTr("nickname")
 
                 onTextChanged:
                 {
@@ -85,8 +85,13 @@ ScrollablePage {
                 enabled: false
                 width: parent.width
 
+                Keys.onPressed: (event) => {
+                    if (event.key === Qt.Key_Enter) {
+                        clicked() // Programmatically trigger the onClicked signal
+                        event.accepted = true // Prevent the event from propagating further
+                    }
+                }
                 onClicked:  {
-
                     backend.login([username.text, password.text]);
                 }
             }
