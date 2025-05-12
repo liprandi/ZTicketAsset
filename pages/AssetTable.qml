@@ -81,7 +81,7 @@ Item {
                 anchors.fill: listItem
                 onClicked:
                 {
-                    myView.currentIndex = index;
+                    myView.currentIndex = modelData.index;
                 }
             }
         }

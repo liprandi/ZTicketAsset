@@ -79,7 +79,7 @@ Item {
                 anchors.fill: parent
                 onClicked:
                 {
-                    myTicket.currentIndex = index;
+                    myTicket.currentIndex = modelData.index;
                 }
             }
         }
