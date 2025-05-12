@@ -33,9 +33,9 @@ ZBackEnd::ZBackEnd(QObject *parent)
         qDebug() << "login user: " << reply["nickname"];
 
         m_credentials = reply.object();
+        m_needUpdateAssets = m_needUpdateTickets = true;
         if(m_credentials["nickname"].isString())
             emit credentialsChanged();
-        m_needUpdateAssets = m_needUpdateTickets = true;
     });
 
     connect(&m_db, &ZDatabase::sNewUser, this, [=, this](const QString& nick)
@@ -209,7 +209,7 @@ void ZBackEnd::readTickets()
     {
         m_needUpdateTickets = true;
 
-        QString str = QString("SELECT ticket, dt_open, user, asset, status, description FROM tickets WHERE user = '%1'").arg(m_credentials["nickname"].toString("."));
+        QString str = QString("SELECT ticket, dt_open, user, asset, status, description, CONCAT('__', status, '_') AS emoji FROM tickets WHERE user = '%1'").arg(m_credentials["nickname"].toString("."));
 
         m_db.query(str, id_tickets);
   //      std::unique_lock<std::mutex> lock(m_mtxTickets);
