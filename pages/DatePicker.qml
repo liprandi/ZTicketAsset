@@ -119,8 +119,8 @@ Item {
                 Repeater {
                     model: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
                     delegate: Label {
-                        width: 35
-                        height: 35
+                        width: 32
+                        height: 32
                         horizontalAlignment: Text.AlignHCenter
                         text: modelData
                     }
@@ -134,17 +134,29 @@ Item {
                             roleValue: 0
 
                             delegate: Item {
-                                width: 35
-                                height: 35
+                                width: 32
+                                height: 32
                             }
                         }
 
                         DelegateChoice {
                             delegate: Button {
-                                width: 35
-                                height: 35
+
+                                width: 32
+                                height: 32
                                 text: day
+                                font.pixelSize: 8
+
                                 highlighted: day === _temp_date.getDate() && selected_date.getMonth() === _temp_date.getMonth() && selected_date.getFullYear() === _temp_date.getFullYear()
+
+                                contentItem: Text {
+                                     text: parent.text // Reference the button's text property
+                                     font: parent.font // Inherit the button's font properties
+                                     color: parent.highlighted ? "red" : (parent.hovered ? "green" : "blue");
+                                     horizontalAlignment: Text.AlignHCenter
+                                     verticalAlignment: Text.AlignVCenter
+                                 }
+
                                 onClicked: {
                                     const _date = _temp_date
                                     _date.setDate(day)

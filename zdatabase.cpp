@@ -270,11 +270,11 @@ void ZDatabase::openTicket(const QString &id, const QString &nick, const QString
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
-    uint status = U'😭';
+    QString st = QString("🙋‍").toUtf8();
 
-    QString str = QString(u8"?sel=8&query=INSERT INTO tickets (ticket, dt_open, status, user, asset, description) "
+    QString str = QString("?sel=8&query=INSERT INTO tickets (ticket, dt_open, status, user, asset, description) "
                           "values ('%1', '%2', %3, '%4', '%5', '%6')")
-                      .arg(id, dt).arg(status).arg(nick, asset, description);
+                      .arg(id, dt, st, nick, asset, description);
 
     QUrl url(g_php + str);
 
@@ -300,9 +300,10 @@ void ZDatabase::closeTicket(const QString &id)
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
-    uint status = U'😀';
+    QString st = QString("👍").toUtf8();
+
     QString str = QString("?sel=9&query=UPDATE tickets SET dt_close='%1', status=%2 WHERE ticket='%3'")
-                      .arg(dt).arg(status).arg(id);
+                      .arg(dt, st, id);
 
     QUrl url(g_php + str);
 
@@ -321,13 +322,13 @@ void ZDatabase::closeTicket(const QString &id)
     });
 
 }
-void ZDatabase::newTicketStep(const QString &id, int status, const QString &description)
+void ZDatabase::newTicketStep(const QString &id, const QString &nick, const QString &status, const QString &description)
 {
     QNetworkRequest request;
 
-    QString str = QString("?sel=10&query=INSERT INTO steps (ticket, emoji, description) "
-                          "values ('%1', %2, '%3')")
-                      .arg(id).arg(status).arg(description);
+    QString str = QString("?sel=10&query=INSERT INTO steps (ticket, nickname, status, description) "
+                          "values ('%1', '%2', %3, '%4')")
+                      .arg(id, nick, status, description);
 
     QUrl url(g_php + str);
 
@@ -340,9 +341,9 @@ void ZDatabase::newTicketStep(const QString &id, int status, const QString &desc
     {
         auto buffer = reply->readAll();
         if(buffer.contains("sel=10\r[]"))
-            emit sNewTicketStep(id);
+            emit sNewTicketStep(id, nick);
         else
-            emit sNewTicketStep("");
+            emit sNewTicketStep("", "");
     });
 
 }

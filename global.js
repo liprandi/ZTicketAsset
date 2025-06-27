@@ -8,3 +8,6 @@ var logJson;
 
 var assets;
 var tickets;
+var steps;
+
+var emojis;

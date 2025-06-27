@@ -9,6 +9,8 @@
 #include "zdatabase.h"
 #include "zbackend.h"
 
+#define LOCAL_DB false
+
 QObject *qmlObj = 0l;
 
 int main(int argc, char *argv[])
@@ -26,7 +28,10 @@ int main(int argc, char *argv[])
     if(qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
         QQuickStyle::setStyle(settings.value("style", "Material").toString());
 
-    ZDatabase::setPhpAddress(settings.value("php_address", "https://www.liprandi.com/ticket/liprandi_ticket.php").toString());
+    if(LOCAL_DB)
+        ZDatabase::setPhpAddress(settings.value("php_address", "http://10.40.20.223/ticket.php").toString());
+    else
+        ZDatabase::setPhpAddress(settings.value("php_address", "https://www.liprandi.com/ticket/liprandi_ticket.php").toString());
 
     QQmlApplicationEngine engine;
     // Register your QAbstractTableModel subclass

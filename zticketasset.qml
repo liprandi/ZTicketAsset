@@ -26,7 +26,7 @@ ApplicationWindow {
     //! [orientation]
 
     function help() {
-        let url = "https://www.liprandi.com/";
+        let url = "https://www.cam-carmagnola.com/";
         Qt.openUrlExternally(url)
     }
 
@@ -61,6 +61,17 @@ ApplicationWindow {
         Global.assets = backend.assets;
         Global.tickets = backend.tickets;
     }
+
+    function handleUpdate()
+    {
+        backend.readAssets();
+        backend.readTickets();
+        backend.readSteps("");
+        Global.assets = backend.assets;
+        Global.tickets = backend.tickets;
+        Global.steps = backend.steps;
+    }
+
     function handleNewAsset()
     {
 
@@ -228,33 +239,7 @@ ApplicationWindow {
                 ListElement { icon: "images/user.png"; title: qsTr("Login"); source: "qrc:/pages/LoginPage.qml" }
                 ListElement { icon: "images/asset.png"; title: qsTr("Assets"); source: "qrc:/pages/AssetTable.qml" }
                 ListElement { icon: "images/ticket.png"; title: qsTr("Tickets"); source: "qrc:/pages/TicketTable.qml" }
-/*
-                ListElement { icon: "images/item.png"; title: qsTr("Button"); source: "qrc:/pages/ButtonPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("CheckBox"); source: "qrc:/pages/CheckBoxPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("ComboBox"); source: "qrc:/pages/ComboBoxPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("DelayButton"); source: "qrc:/pages/DelayButtonPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Dial"); source: "qrc:/pages/DialPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Dialog"); source: "qrc:/pages/DialogPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Delegates"); source: "qrc:/pages/DelegatePage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Frame"); source: "qrc:/pages/FramePage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("GroupBox"); source: "qrc:/pages/GroupBoxPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("PageIndicator"); source: "qrc:/pages/PageIndicatorPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("ProgressBar"); source: "qrc:/pages/ProgressBarPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("RadioButton"); source: "qrc:/pages/RadioButtonPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("RangeSlider"); source: "qrc:/pages/RangeSliderPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("ScrollBar"); source: "qrc:/pages/ScrollBarPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("ScrollIndicator"); source: "qrc:/pages/ScrollIndicatorPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Slider"); source: "qrc:/pages/SliderPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("SpinBox"); source: "qrc:/pages/SpinBoxPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("StackView"); source: "qrc:/pages/StackViewPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("SwipeView"); source: "qrc:/pages/SwipeViewPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Switch"); source: "qrc:/pages/SwitchPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("TabBar"); source: "qrc:/pages/TabBarPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("TextArea"); source: "qrc:/pages/TextAreaPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("TextField"); source: "qrc:/pages/TextFieldPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("ToolTip"); source: "qrc:/pages/ToolTipPage.qml" }
-                ListElement { icon: "images/item.png"; title: qsTr("Tumbler"); source: "qrc:/pages/TumblerPage.qml" }
-*/
+                ListElement { icon: "images/ticket.png"; title: qsTr("Tickets"); source: "qrc:/pages/TicketTree.qml" }
             }
 
             delegate: ItemDelegate {
@@ -300,7 +285,7 @@ ApplicationWindow {
                 anchors.centerIn: parent
                 anchors.verticalCenterOffset: -50
                 fillMode: Image.PreserveAspectFit
-                source: "images/cam-logo.png"
+                source: "images/cam.svg"
             }
 
             Label {

@@ -22,11 +22,9 @@ Item {
                     append(jsonArray[i])
                 }
             }
-
             Component.onCompleted: {
                 populateModel(Global.assets);
             }
-
         }
 
         // Delegate: how each item appears
@@ -43,38 +41,75 @@ Item {
                 anchors.leftMargin: 5
                 anchors.rightMargin: 5
 
-                Text {
+                Rectangle
+                {
                     Layout.preferredWidth: myView.width * 0.20
-                    horizontalAlignment: Qt.AlignCenter
-                    text: modelData.id
+                    height: 45
+                    color: myView.currentIndex === modelData.index ? "lightyellow" : "lightgray"
+                    border.color: myView.currentIndex === modelData.index ? "orange" : "darkgray" // Change border if current
+                    border.width: myView.currentIndex === modelData.index ? 2 : 1 // Thicker border for current
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: modelData.id
+                    }
+                }
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 45
+                    color: myView.currentIndex === modelData.index ? "lightyellow" : "lightgray"
+                    border.color: myView.currentIndex === modelData.index ? "orange" : "darkgray" // Change border if current
+                    border.width: myView.currentIndex === modelData.index ? 2 : 1 // Thicker border for current
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: modelData.type
+                    }
+                }
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 45
+                    color: myView.currentIndex === modelData.index ? "lightyellow" : "lightgray"
+                    border.color: myView.currentIndex === modelData.index ? "orange" : "darkgray" // Change border if current
+                    border.width: myView.currentIndex === modelData.index ? 2 : 1 // Thicker border for current
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: modelData.model
+                    }
+                }
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 45
+                    color: myView.currentIndex === modelData.index ? "lightyellow" : "lightgray"
+                    border.color: myView.currentIndex === modelData.index ? "orange" : "darkgray" // Change border if current
+                    border.width: myView.currentIndex === modelData.index ? 2 : 1 // Thicker border for current
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: modelData.description
+                    }
                 }
 
 
-
-                Text {
+                Rectangle
+                {
                     Layout.preferredWidth: myView.width * 0.20
-                    horizontalAlignment: Qt.AlignCenter
-                    text: modelData.type
-                }
-
-
-                Layout.preferredWidth: myView.width * 0.20
-                Text {
-                    horizontalAlignment: Qt.AlignCenter
-                    text: modelData.model
-                }
-
-                Text {
-                    Layout.preferredWidth: myView.width * 0.20
-                    horizontalAlignment: Qt.AlignCenter
-                    text: modelData.description
-                }
-
-
-                Text {
-                    Layout.preferredWidth: myView.width * 0.20
-                    horizontalAlignment: Qt.AlignCenter
-                    text: modelData.date
+                    height: 45
+                    color: myView.currentIndex === modelData.index ? "lightyellow" : "lightgray"
+                    border.color: myView.currentIndex === modelData.index ? "orange" : "darkgray" // Change border if current
+                    border.width: myView.currentIndex === modelData.index ? 2 : 1 // Thicker border for current
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text:  modelData.date
+                    }
                 }
             }
             MouseArea {
@@ -98,11 +133,83 @@ Item {
         header: Rectangle {
             width: myView.width
             height: 30
-            color: "lightgray"
-            Text {
-                text: qsTr("Assets List")
-                font.bold: true
-                anchors.centerIn: parent
+
+            RowLayout {
+
+                anchors.fill: parent
+                anchors.leftMargin: 5
+                anchors.rightMargin: 5
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 25
+                    color: "lightblue"
+                    border.color: "darkblue"
+                    border.width: 1
+                    Text {
+                        verticalAlignment: Qt.AlignVCenter
+                        horizontalAlignment: Qt.AlignLeft
+                        text: qsTr("Id")
+                    }
+                }
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 25
+                    color: "lightblue"
+                    border.color: "darkblue"
+                    border.width: 1
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: qsTr("Type")
+                    }
+                }
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 25
+                    color: "lightblue"
+                    border.color: "darkblue"
+                    border.width: 1
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: qsTr("Model")
+                    }
+                }
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 25
+                    color: "lightblue"
+                    border.color: "darkblue"
+                    border.width: 1
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: qsTr("Description")
+                    }
+                }
+
+
+                Rectangle
+                {
+                    Layout.preferredWidth: myView.width * 0.20
+                    height: 25
+                    color: "lightblue"
+                    border.color: "darkblue"
+                    border.width: 1
+                    Text {
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: qsTr("Date")
+                    }
+                }
             }
         }
 
@@ -147,7 +254,7 @@ Item {
                             id: logo
                             width: parent.width / 2
                             fillMode: Image.PreserveAspectFit
-                            source: "../images/cam-logo.png"
+                            source: "../images/cam.svg"
                         }
                         RowLayout {
 

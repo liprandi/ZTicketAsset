@@ -61,16 +61,17 @@ qt_add_qml_module(ZTicketAsset
 #        pages/TextFieldPage.qml
 #        pages/ToolTipPage.qml
 #        pages/TumblerPage.qml
+        pages/TicketTree.qml
         pages/TicketTable.qml
         pages/AssetTable.qml
         pages/DatePicker.qml
-        global.js
+
+global.js
     SOURCES
 
-
+        emoji_map.h
         zbackend.h
         zbackend.cpp
-
 
     RESOURCES
         icons/zticketasset/20x20/back.png
@@ -98,10 +99,10 @@ qt_add_qml_module(ZTicketAsset
         images/arrows@2x.png
         images/arrows@3x.png
         images/arrows@4x.png
-        images/cam-logo.png
-        images/cam-logo@2x.png
-        images/cam-logo@3x.png
-        images/cam-logo@4x.png
+        images/cam.svg
+        images/cam@2x.svg
+        images/cam@3x.svg
+        images/cam@4x.svg
         images/user.png
         images/item.png
         images/asset.png

@@ -2,11 +2,14 @@
 #include <QUrl>
 #include <QFile>
 #include <QTextStream>
-//#include <chrono>
+#include "emoji_map.h"
 #include "zbackend.h"
 #include "zdatabase.h"
 
 extern QObject *qmlObj;
+extern std::vector<QStringList> g_emoji;
+//extern std::vector<std::vector<std::string>> g_emoji;
+
 
 ZBackEnd::ZBackEnd(QObject *parent)
     : QObject{parent}
@@ -166,15 +169,20 @@ void ZBackEnd::newTicket(const QStringList &ticket)
 }
 
 // [0] = id
-// [1] = emoji
-// [2] = description
+// [1] = nickname
+// [2] = emoji
+// [3] = description
 void ZBackEnd::addTicketStep(const QStringList &step)
 {
     qDebug() << "addTicketStep: " << step;
-    if(step.length() == 3 && !step[0].isEmpty() && !step[1].isEmpty()  && !step[2].isEmpty())
+    if(step.length() == 4 && !step[0].isEmpty() && !step[1].isEmpty() && !step[3].isEmpty())
     {
-        int status = step[1][0].unicode();
-        m_db.newTicketStep(step[0], status, step[2]);
+        QString st = QString("✅‍").toUtf8();
+        if(!step[2].isEmpty())
+        {
+            QString st = QString(step[2]).toUtf8();
+         }
+        m_db.newTicketStep(step[0], step[1], st, step[3]);
     }
 }
 
@@ -209,12 +217,32 @@ void ZBackEnd::readTickets()
     {
         m_needUpdateTickets = true;
 
-        QString str = QString("SELECT ticket, dt_open, user, asset, status, description, CONCAT('__', status, '_') AS emoji FROM tickets WHERE user = '%1'").arg(m_credentials["nickname"].toString("."));
+        QString str = QString("SELECT ticket, dt_open, user, asset, status, description FROM tickets WHERE user = '%1'").arg(m_credentials["nickname"].toString("."));
 
         m_db.query(str, id_tickets);
   //      std::unique_lock<std::mutex> lock(m_mtxTickets);
   //      m_cvTickets.wait_for(lock, std::chrono::seconds(10), [this]{ return !m_needUpdateTickets; });
         emit ticketsUpdated();
+    }
+}
+
+void ZBackEnd::readSteps(const QString &ticket)
+{
+    if(m_steps.isEmpty() || m_needUpdateSteps)
+    {
+        m_needUpdateSteps = true;
+
+        QString str;
+
+        if(ticket.isEmpty())
+            str = QString("SELECT ticket, nickname, status, description FROM steps");
+        else
+            str = QString("SELECT ticket, nickname, status, description FROM steps WHERE ticket = '%1'").arg(m_credentials["ticket"].toString("."));
+
+        m_db.query(str, id_steps);
+        //      std::unique_lock<std::mutex> lock(m_mtxTickets);
+        //      m_cvTickets.wait_for(lock, std::chrono::seconds(10), [this]{ return !m_needUpdateTickets; });
+        emit stepsUpdated();
     }
 }
 
@@ -239,9 +267,32 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
         if(reply.isArray())
         {
             m_tickets = reply.array();
+            for(int i = 0; i < m_tickets.count(); i++)
+            {
+                QJsonObject v = m_tickets.at(i).toObject();
+
+                int st = v["status"].toString().toInt();
+                v.insert("emoji", g_emoji[st][0]);
+                m_tickets.replace(i, v);
+            }
 //            std::unique_lock<std::mutex> lock(m_mtxTickets); // Acquire the mutex
             m_needUpdateTickets = false;
 //            m_cvTickets.notify_one();
+        }
+        break;
+    case id_steps:
+        if(reply.isArray())
+        {
+            m_steps = reply.array();
+            for(int i = 0; i < m_steps.count(); i++)
+            {
+                QJsonObject v = m_steps.at(i).toObject();
+
+                int st = v["status"].toString().toInt();
+                v.insert("emoji", g_emoji[st][0]);
+                m_steps.replace(i, v);
+            }
+            m_needUpdateSteps = false;
         }
         break;
     default:

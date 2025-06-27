@@ -125,7 +125,7 @@ ScrollablePage {
                                 id: logo
                                 width: parent.width / 2
                                 fillMode: Image.PreserveAspectFit
-                                source: "../images/cam-logo.png"
+                                source: "../images/cam.svg"
                             }
 
                             TextField {
