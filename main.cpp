@@ -8,8 +8,9 @@
 #include <QVariant>
 #include "zdatabase.h"
 #include "zbackend.h"
+#include "emoji_map.h"
 
-#define LOCAL_DB false
+#define LOCAL_DB true
 
 QObject *qmlObj = 0l;
 

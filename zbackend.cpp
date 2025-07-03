@@ -2,13 +2,11 @@
 #include <QUrl>
 #include <QFile>
 #include <QTextStream>
-#include "emoji_map.h"
+#include "zemoji.h"
 #include "zbackend.h"
 #include "zdatabase.h"
 
 extern QObject *qmlObj;
-extern std::vector<QStringList> g_emoji;
-//extern std::vector<std::vector<std::string>> g_emoji;
 
 
 ZBackEnd::ZBackEnd(QObject *parent)
@@ -177,12 +175,8 @@ void ZBackEnd::addTicketStep(const QStringList &step)
     qDebug() << "addTicketStep: " << step;
     if(step.length() == 4 && !step[0].isEmpty() && !step[1].isEmpty() && !step[3].isEmpty())
     {
-        QString st = QString("✅‍").toUtf8();
-        if(!step[2].isEmpty())
-        {
-            QString st = QString(step[2]).toUtf8();
-         }
-        m_db.newTicketStep(step[0], step[1], st, step[3]);
+        ZEmoji emoji(step[2]);
+        m_db.newTicketStep(step[0], step[1], emoji.m_html, step[3]);
     }
 }
 
@@ -223,6 +217,26 @@ void ZBackEnd::readTickets()
   //      std::unique_lock<std::mutex> lock(m_mtxTickets);
   //      m_cvTickets.wait_for(lock, std::chrono::seconds(10), [this]{ return !m_needUpdateTickets; });
         emit ticketsUpdated();
+    }
+}
+
+void ZBackEnd::readEmojis()
+{
+    if(g_emoji.size() > 0)
+    {
+        m_emojis.empty();
+        for(const auto& item: g_emoji)
+        {
+            if(item.size() == 4 && !item[0].isEmpty() && !item[1].isEmpty() && !item[3].isEmpty())
+            {
+                QJsonObject v;
+                v.insert("emoji", item[0]);
+                v.insert("html", item[1]);
+                v.insert("text", item[3]);
+                m_emojis.append(v);
+            }
+        }
+        emit emojisUpdated();
     }
 }
 
@@ -270,9 +284,8 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
             for(int i = 0; i < m_tickets.count(); i++)
             {
                 QJsonObject v = m_tickets.at(i).toObject();
-
-                int st = v["status"].toString().toInt();
-                v.insert("emoji", g_emoji[st][0]);
+                ZEmoji emoji = ZEmoji::FromStatus(v["status"].toString());
+                v.insert("emoji", emoji.m_emoji[0]);
                 m_tickets.replace(i, v);
             }
 //            std::unique_lock<std::mutex> lock(m_mtxTickets); // Acquire the mutex
@@ -287,9 +300,8 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
             for(int i = 0; i < m_steps.count(); i++)
             {
                 QJsonObject v = m_steps.at(i).toObject();
-
-                int st = v["status"].toString().toInt();
-                v.insert("emoji", g_emoji[st][0]);
+                ZEmoji emoji = ZEmoji::FromStatus(v["status"].toString());
+                v.insert("emoji", emoji.m_emoji[0]);
                 m_steps.replace(i, v);
             }
             m_needUpdateSteps = false;

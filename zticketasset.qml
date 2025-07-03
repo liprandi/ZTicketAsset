@@ -58,8 +58,10 @@ ApplicationWindow {
         login(Global.logJson);
         backend.readAssets();
         backend.readTickets();
+        backend.readEmojis();
         Global.assets = backend.assets;
         Global.tickets = backend.tickets;
+        Global.emojis = backend.emojis;
     }
 
     function handleUpdate()

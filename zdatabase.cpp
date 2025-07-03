@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDateTime>
+#include "zemoji.h"
 #include "zdatabase.h"
 
 #define errdb {qDebug() <<  mysql_error(m_sql); return false;}
@@ -270,11 +271,11 @@ void ZDatabase::openTicket(const QString &id, const QString &nick, const QString
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
-    QString st = QString("🙋‍").toUtf8();
+    ZEmoji emoji("🙋‍");
 
     QString str = QString("?sel=8&query=INSERT INTO tickets (ticket, dt_open, status, user, asset, description) "
-                          "values ('%1', '%2', %3, '%4', '%5', '%6')")
-                      .arg(id, dt, st, nick, asset, description);
+                          "values ('%1', '%2', '%3', '%4', '%5', '%6')")
+                      .arg(id, dt, emoji.m_html, nick, asset, description);
 
     QUrl url(g_php + str);
 
@@ -300,10 +301,10 @@ void ZDatabase::closeTicket(const QString &id)
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
-    QString st = QString("👍").toUtf8();
+    ZEmoji emoji("👍");
 
-    QString str = QString("?sel=9&query=UPDATE tickets SET dt_close='%1', status=%2 WHERE ticket='%3'")
-                      .arg(dt, st, id);
+    QString str = QString("?sel=9&query=UPDATE tickets SET dt_close='%1', status='%2' WHERE ticket='%3'")
+                      .arg(dt, emoji.m_html, id);
 
     QUrl url(g_php + str);
 
@@ -327,7 +328,7 @@ void ZDatabase::newTicketStep(const QString &id, const QString &nick, const QStr
     QNetworkRequest request;
 
     QString str = QString("?sel=10&query=INSERT INTO steps (ticket, nickname, status, description) "
-                          "values ('%1', '%2', %3, '%4')")
+                          "values ('%1', '%2', '%3', '%4')")
                       .arg(id, nick, status, description);
 
     QUrl url(g_php + str);

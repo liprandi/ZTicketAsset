@@ -70,6 +70,7 @@ global.js
     SOURCES
 
         emoji_map.h
+        zemoji.h
         zbackend.h
         zbackend.cpp
 

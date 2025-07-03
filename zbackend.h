@@ -19,6 +19,7 @@ class ZBackEnd : public QObject
     Q_PROPERTY(QJsonArray assets READ assets NOTIFY assetsUpdated)
     Q_PROPERTY(QJsonArray tickets READ tickets NOTIFY ticketsUpdated)
     Q_PROPERTY(QJsonArray steps READ steps NOTIFY stepsUpdated)
+    Q_PROPERTY(QJsonArray emojis READ emojis NOTIFY emojisUpdated)
     QML_ELEMENT
 public:
     enum
@@ -34,12 +35,14 @@ public:
     QJsonArray assets() const {return m_assets;}
     QJsonArray tickets() const {return m_tickets;}
     QJsonArray steps() const {return m_steps;}
+    QJsonArray emojis() const {return m_emojis;}
 
 signals:
     void credentialsChanged();
     void assetsUpdated();
     void ticketsUpdated();
     void stepsUpdated();
+    void emojisUpdated();
 
 public slots:
     void login(const QStringList &credentials);
@@ -53,6 +56,7 @@ public slots:
     void queried(int id, const QJsonDocument& reply);
     void readAssets();
     void readTickets();
+    void readEmojis();
     void readSteps(const QString &ticket);
 
 private:
@@ -64,6 +68,7 @@ private:
     QJsonArray m_assets;
     QJsonArray m_tickets;
     QJsonArray m_steps;
+    QJsonArray m_emojis;
     bool m_needUpdateAssets;
     bool m_needUpdateTickets;
     bool m_needUpdateSteps;
