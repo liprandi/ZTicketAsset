@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="icon5">resource/icons/icon5.png</file>
+        <file alias="icon4">resource/icons/icon3.png</file>
+        <file alias="icon3">resource/icons/ticket.png</file>
+        <file alias="icon2">resource/icons/asset.png</file>
+        <file alias="icon1">resource/icons/user.png</file>
+        <file alias="icon0">resource/icons/cam.svg</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file alias="NotoColorEmoji">resource/fonts/NotoColorEmoji-Regular.ttf</file>
+    </qresource>
+    <qresource prefix="/styles">
+        <file alias="light">resource/styles/light.qss</file>
+        <file alias="dark">resource/styles/dark.qss</file>
+        <file alias="fusion">resource/styles/fusion.qss</file>
+    </qresource>
+</RCC>
