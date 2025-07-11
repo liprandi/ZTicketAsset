@@ -1,63 +1,86 @@
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+
+#include <QTranslator>
+#include <QLocale>
+#include <QApplication>
 #include <QSettings>
-#include <QQuickStyle>
-#include <QQuickItem>
-#include <QIcon>
-#include <QVariant>
+#include <QFile>
+#include <QFontDatabase>
+
+#include "mainwindow.h"
 #include "zdatabase.h"
-#include "zbackend.h"
-#include "emoji_map.h"
 
-#define LOCAL_DB true
+#include <optional>
 
-QObject *qmlObj = 0l;
+std::optional<std::string> getArgValue(int argc, char* argv[], const std::string& key) {
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
 
-int main(int argc, char *argv[])
-{
-    QGuiApplication::setApplicationName("Ticket Asset");
-    QGuiApplication::setOrganizationName("CamDoBrasil");
+        // Handle "--key=value"
+        if (arg.rfind(key + "=", 0) == 0) {
+            return arg.substr(key.length() + 1);
+        }
 
- //   qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
+        // Handle "--key value"
+        if (arg == key && i + 1 < argc) {
+            return argv[i + 1];
+        }
+    }
+    return std::nullopt;
+}
 
-    QGuiApplication app(argc, argv);
+bool hasArg(int argc, char* argv[], const std::string& key) {
+    return std::any_of(argv + 1, argv + argc, [&key](const char* arg) {
+        return key == arg;
+    });
+}
 
-    QIcon::setThemeName("zticketasset");
+int main(int argc, char *argv[]) {
+
+    QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
+
+    QApplication a(argc, argv);
 
     QSettings settings;
-    if(qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
-        QQuickStyle::setStyle(settings.value("style", "Material").toString());
 
-    if(LOCAL_DB)
+    QTranslator translator;
+    if (translator.load(":/translations/app_it.qm")) {
+        a.installTranslator(&translator);
+    }
+
+    auto local = hasArg(argc, argv, "--local") || hasArg(argc, argv, "-l");
+    auto php  = getArgValue(argc, argv, "--php");
+
+
+    if(local)
         ZDatabase::setPhpAddress(settings.value("php_address", "http://10.40.20.223/ticket.php").toString());
-    else
-        ZDatabase::setPhpAddress(settings.value("php_address", "https://www.liprandi.com/ticket/liprandi_ticket.php").toString());
+    else {
+        if(!php) {
+            ZDatabase::setPhpAddress(settings.value("php_address", "https://www.liprandi.com/ticket/liprandi_ticket.php").toString());
+        }
+        else {
+            ZDatabase::setPhpAddress(php->c_str());
+        }
+    }
 
-    QQmlApplicationEngine engine;
-    // Register your QAbstractTableModel subclass
+    // Load from resource (recommended)
+    int fontId = QFontDatabase::addApplicationFont(":/fonts/NotoColorEmoji");
+    QString fontFamily("Emoji");
 
-    qmlRegisterType<ZBackEnd>("ZTicketAsset", 1, 0, "ZBackEnd");
+    if (fontId == -1) {
+        qWarning() << "Failed to load font!";
+    } else {
+        fontFamily = QFontDatabase::applicationFontFamilies(fontId).at(0);
+    }
 
-    QStringList builtInStyles = { QLatin1String("Basic"), QLatin1String("Fusion"),
-                                 QLatin1String("Imagine"), QLatin1String("Material"), QLatin1String("Universal"),
-                                 QLatin1String("FluentWinUI3") };
+    QFile file(":/styles/fusion");
+    if(file.open(QFile::ReadOnly | QFile::Text)) {
+        QString buff = QTextStream(&file).readAll();
+        buff.replace("Emoji", fontFamily, Qt::CaseInsensitive);
+        qApp->setStyleSheet(buff);
+    }
 
-    engine.setInitialProperties({{ "builtInStyles", builtInStyles }});
-    QObject::connect(
-        &engine,
-        &QQmlApplicationEngine::objectCreationFailed,
-        &app,
-        []() { QCoreApplication::exit(-1); },
-        Qt::QueuedConnection);
+    MainWindow w;
+    w.show();
 
-    engine.load(QUrl("qrc:/zticketasset.qml"));
-
-    if(engine.rootObjects().isEmpty())
-        return -1;
-
-    const auto& list = engine.rootObjects();
-    qmlObj = list[0];
-
-    return app.exec();
+    return a.exec();
 }
