@@ -10,7 +10,8 @@ class ZDatabase : public QObject
 public:
     enum
     {
-        id_login = 0,
+        id_null = 0,
+        id_login,
         id_editUser,
         id_editAsset,
         id_editTicket,

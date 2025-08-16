@@ -6,6 +6,7 @@
         <file alias="icon2">resource/icons/asset.png</file>
         <file alias="icon1">resource/icons/user.svg</file>
         <file alias="icon0">resource/icons/cam.svg</file>
+        <file alias="refresh">resource/icons/refresh.svg</file>
     </qresource>
     <qresource prefix="/fonts">
         <file alias="NotoColorEmoji">resource/fonts/NotoColorEmoji-Regular.ttf</file>

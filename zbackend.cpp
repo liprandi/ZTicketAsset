@@ -10,7 +10,7 @@ ZBackEnd* g_backend = 0l;
 
 ZBackEnd::ZBackEnd(QObject *parent)
     : QObject{parent}
-    , m_needUpdate(false)
+    , m_update(0)
 {
     qDebug() << "create back-end object";
     if(m_db.connectdb())
@@ -58,7 +58,7 @@ bool ZBackEnd::selectAsset(const QString& asset)
 
     if(found) {
         qDebug() << "Asset selected: " << m_asset;
-        m_needUpdate = true;
+        m_update = 10;
     }
     return found;
 }
@@ -80,7 +80,6 @@ bool ZBackEnd::selectTicket(const QString& ticket)
 
     if(found) {
         qDebug() << "Ticket selected: " << m_ticket;
-        m_needUpdate = true;
     }
     return found;
 }
@@ -204,43 +203,26 @@ void ZBackEnd::removeLink(const QStringList &link)
 
 void ZBackEnd::readUsers()
 {
-    if(m_users.isEmpty() || m_needUpdate)
-    {
-        m_needUpdate = false;
-        m_db.readUsers();
-    }
+    m_db.readUsers();
 }
 
 
 void ZBackEnd::readAssets()
 {
-    if(m_assets.isEmpty() || m_needUpdateAssets)
-    {
-        m_needUpdateAssets = false;
-        QString nick = m_credentials["nickname"].toString(".");
-        m_db.readAssets(nick);
-    }
+    QString nick = m_credentials["nickname"].toString(".");
+    m_db.readAssets(nick);
 }
 
 void ZBackEnd::readTickets()
 {
-    if(m_tickets.isEmpty() || m_needUpdateTickets)
-    {
-        m_needUpdateTickets = false;
-        QString nick = m_credentials["nickname"].toString(".");
-        m_db.readTickets(nick);
-    }
+    QString nick = m_credentials["nickname"].toString(".");
+    m_db.readTickets(nick);
 }
 
 void ZBackEnd::readSteps()
 {
-    if(m_steps.isEmpty() || m_needUpdateSteps)
-    {
-        m_needUpdateSteps = true;
-
-        QString ticket = m_ticket["ticket"].toString(".");
-        m_db.readSteps(ticket);
-    }
+    QString ticket = m_ticket["ticket"].toString(".");
+    m_db.readSteps(ticket);
 }
 
 
@@ -253,12 +235,19 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
     {
         case ZDatabase::id_login:
         {
-            m_credentials = reply.object();
-            if(m_credentials["nickname"].isString()){
-                qDebug() << "loggged: " << m_credentials;
-                emit credentialsChanged();
+            if(reply.isArray()) {
+                auto arr = reply.array();
+                if(arr.size() > 0)
+                {
+                    m_credentials = arr[0].toObject();
+                    if(m_credentials["nickname"].isString()){
+                        qDebug() << "loggged: " << m_credentials;
+                        emit credentialsChanged();
+                        readUsers();
+                        m_update = 10;
+                    }
+                }
             }
-            m_needUpdate = true;
         }
         break;
         case ZDatabase::id_editUser:
@@ -273,7 +262,8 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
         case ZDatabase::id_removeLink:
         {
             qDebug() << "done: " << id << ":" << reply.object();
-            m_needUpdate = true;
+            readUsers();
+            m_update = 10;
         }
         break;
         case ZDatabase::id_readUsers:
@@ -282,6 +272,9 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
             {
                 m_users = reply.array();
                 qDebug() << "users read";
+                readAssets();
+                m_update = 40;
+                emit usersUpdated();
             }
         }
         break;
@@ -291,6 +284,9 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
             {
                 m_assets = reply.array();
                 qDebug() << "assets read";
+                readTickets();
+                m_update = 60;
+                emit assetsUpdated();
             }
         }
         break;
@@ -307,6 +303,9 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
                     m_tickets.replace(i, v);
                 }
                 qDebug() << "tickets read";
+                readSteps();
+                m_update = 80;
+                emit ticketsUpdated();
             }
         }
         break;
@@ -323,6 +322,8 @@ void ZBackEnd::queried(int id, const QJsonDocument& reply)
                     m_steps.replace(i, v);
                 }
                 qDebug() << "steps read";
+                m_update = 0;
+                emit stepsUpdated();
             }
         }
         break;

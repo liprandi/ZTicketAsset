@@ -39,6 +39,22 @@ MainWindow::MainWindow(QWidget *parent)
             });
         }
     }
+
+    connect(&m_backend, &ZBackEnd::usersUpdated, this, [this](){
+        ui->updateBar->setValue(m_backend.updatePercent());
+    });
+    connect(&m_backend, &ZBackEnd::assetsUpdated, this, [this](){
+        ui->updateBar->setValue(m_backend.updatePercent());
+    });
+    connect(&m_backend, &ZBackEnd::ticketsUpdated, this, [this](){
+        ui->updateBar->setValue(m_backend.updatePercent());
+    });
+    connect(&m_backend, &ZBackEnd::stepsUpdated, this, [this](){
+        ui->updateBar->setValue(m_backend.updatePercent());
+    });
+    connect(ui->pbRefresh, &QPushButton::clicked, this, [this](bool){
+        m_backend.readUsers();
+    });
     m_backend.login({"agostino.beltrando", "C4mb14m1"});
 }
 

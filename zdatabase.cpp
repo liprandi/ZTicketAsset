@@ -73,8 +73,9 @@ void ZDatabase::queryAsync(const QString& qString, uint id, int timeoutMs)
         emit sQuery(id, QJsonDocument());
     });
 
-    connect(reply, &QNetworkReply::finished, this, [reply, this]
+    connect(reply, &QNetworkReply::finished, this, [reply, timeoutTimer, this]
     {
+        timeoutTimer->stop();
         auto buffer = reply->readAll();
         int token = buffer.indexOf('\r');
         if(token > 0)

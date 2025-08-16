@@ -38,8 +38,11 @@ public:
     void readTickets();
     void readSteps();
 
+public: // inline
+    inline int updatePercent(){return m_update;}
 signals:
     void credentialsChanged();
+    void usersUpdated();
     void assetsUpdated();
     void ticketsUpdated();
     void stepsUpdated();
@@ -50,10 +53,7 @@ public slots:
     void queried(int id, const QJsonDocument& reply);
 
 private:
-    bool m_needUpdate;
-    bool m_needUpdateAssets;
-    bool m_needUpdateTickets;
-    bool m_needUpdateSteps;
+    int m_update;
     QJsonObject m_credentials;
     QJsonObject m_ticket;
     QJsonObject m_asset;
