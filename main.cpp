@@ -50,7 +50,6 @@ int main(int argc, char *argv[]) {
     auto local = hasArg(argc, argv, "--local") || hasArg(argc, argv, "-l");
     auto php  = getArgValue(argc, argv, "--php");
 
-
     if(local)
         ZDatabase::setPhpAddress(settings.value("php_address", "http://10.40.20.223/ticket.php").toString());
     else {
@@ -72,7 +71,7 @@ int main(int argc, char *argv[]) {
         fontFamily = QFontDatabase::applicationFontFamilies(fontId).at(0);
     }
 
-    QFile file(":/styles/fusion");
+    QFile file(":/styles/dark");
     if(file.open(QFile::ReadOnly | QFile::Text)) {
         QString buff = QTextStream(&file).readAll();
         buff.replace("Emoji", fontFamily, Qt::CaseInsensitive);

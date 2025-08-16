@@ -4,7 +4,7 @@
         <file alias="icon4">resource/icons/icon3.png</file>
         <file alias="icon3">resource/icons/ticket.png</file>
         <file alias="icon2">resource/icons/asset.png</file>
-        <file alias="icon1">resource/icons/user.png</file>
+        <file alias="icon1">resource/icons/user.svg</file>
         <file alias="icon0">resource/icons/cam.svg</file>
     </qresource>
     <qresource prefix="/fonts">

@@ -4,10 +4,30 @@
 #include <QAbstractTableModel>
 #include <QNetworkAccessManager>
 
-
 class ZDatabase : public QObject
 {
     Q_OBJECT
+public:
+    enum
+    {
+        id_login = 0,
+        id_editUser,
+        id_editAsset,
+        id_editTicket,
+        id_editLink,
+        id_newStep,
+        id_closeTicket,
+        id_removeTicket,
+        id_removeAsset,
+        id_removeUser,
+        id_removeLink,
+        id_editStep,
+        id_readUsers,
+        id_readAssets,
+        id_readTickets,
+        id_readSteps,
+        idSize
+    };
 public:
 
     explicit ZDatabase(QObject *parent = nullptr);
@@ -17,39 +37,38 @@ public:
 
     static void setPhpAddress(const QString& php){g_php = php;}
 signals:
-    void started(const QByteArray& result);
     void sQuery(int id, const QJsonDocument& reply);
-    void sLogin(const QJsonDocument& reply);
-    void sNewUser(const QString& nick);
-    void sRemoveUser(const QString& nick);
-    void sNewAsset(const QString& id);
-    void sRemoveAsset(const QString& id);
-    void sNewLink(const QString& id);
-    void sRemoveLink(const QString& id);
-    void sOpenTicket(const QString& id);
-    void sCloseTicket(const QString& id);
-    void sNewTicketStep(const QString& id, const QString& nick);
-
+    void started(const QByteArray& buffer);
 
 public:
-    void query(const QString &qString, uint id);
     void login(const QString &nick, const QString &password_hash);
-    void newUser(const QString &name, const QString &surname, const QString &email);
-    void removeUser(const QString &nick);
-    void newAsset(const QString &id, const QString &type, const QString &model, const QString &description, QString deployed);
-    void removeAsset(const QString &id);
-    void newLink(const QString &asset, const QString &nick);
-    void removeLink(const QString &asset, const QString &nick);
-    void openTicket(const QString &id, const QString &nick, const QString &asset, const QString &description);
+    void editUser(const QString &name, const QString &surname, const QString &email, const QString& password);
+    void editAsset(const QString &id, const QString &type, const QString &model, const QString &description, QString deployed);
+    void editTicket(const QString &id, const QString &nick, const QString &asset, const QString &status, const QString &description);
+    void editLink(const QString &asset, const QString &nick);
+    void newStep(const QString &id, const QString &nick, const QString &status, const QString &description);
     void closeTicket(const QString &id);
-    void newTicketStep(const QString &id, const QString &nick, const QString &status, const QString &description);
+    void removeAsset(const QString &id);
+    void removeUser(const QString &nick);
+    void removeLink(const QString &asset, const QString &nick);
+    void readUsers();
+    void readAssets(const QString &nick);
+    void readTickets(const QString &nick);
+    void readSteps(const QString &id);
+
+protected:
+    void queryAsync(const QString &qString, uint id, int timeoutMs = 3000);
+
 
 private:    // data used for interface
     QNetworkAccessManager* m_manager;
+    QByteArray m_buffer;
 
     static QString g_php;
+public:
     static const QByteArray g_nouser;
     static const QString g_pwDefault;
+
 };
 
 #endif // ZDATABASE_H

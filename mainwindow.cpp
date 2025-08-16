@@ -1,13 +1,16 @@
-#include "mainwindow.h"
+    #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <cassert>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+    , m_backend(this) {
+
     ui->setupUi(this);
     ui->stackedPane->setCurrentIndex(0);
 
-    m_menu.push_back({tr("😐"), ":/icons/icon0"});
+    m_menu.push_back({tr("About"), ":/icons/icon0"});
     m_menu.push_back({tr("Login"), ":/icons/icon1"});
     m_menu.push_back({tr("Ticket"), ":/icons/icon2"});
     m_menu.push_back({tr("Asset"), ":/icons/icon3"});
@@ -19,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     for(int i = 0; i < m_menu.size() && i < act_menu.size(); i++) {
 
         const auto& item = m_menu[i];
-        auto action = ui->widget->addAction(item[0],
+        auto action = ui->sidemenu->addAction(item[0],
                           QIcon(item[1]));
         action->setEnabled(i < 2);
         connect(action, &QAction::triggered, this, [=, this](bool){
@@ -32,10 +35,11 @@ MainWindow::MainWindow(QWidget *parent)
         });
         if(i > 0) {
             connect(act_menu[i], &QAction::triggered, this, [=, this](bool){
-                ui->widget->selectAction(i);
+                ui->sidemenu->selectAction(i);
             });
         }
     }
+    m_backend.login({"agostino.beltrando", "C4mb14m1"});
 }
 
 MainWindow::~MainWindow() { delete ui; }

@@ -10,6 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -21,16 +22,22 @@ add_compile_definitions(
 set(PROJECT_SOURCES
     main.cpp
     mainwindow.cpp
+    zlogin.cpp
+    zbackend.cpp
     sidebar.cpp
     zdatabase.cpp
     zemoji.cpp
 
     mainwindow.h
+    zlogin.h
+    zbackend.h
     sidebar.h
     zdatabase.h
     zemoji.h
+    utility/zplaceholderlineedit.h
 
     mainwindow.ui
+    zlogin.ui
     resource.qrc
 )
 

@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDateTime>
+#include <QTimer>
 #include "zemoji.h"
 #include "zdatabase.h"
 
@@ -47,24 +48,38 @@ bool ZDatabase::connectdb()
 
    return true;
 }
-void ZDatabase::query(const QString& qString, uint sel)
+
+
+void ZDatabase::queryAsync(const QString& qString, uint id, int timeoutMs)
 {
     QNetworkRequest request;
-    QString str = QString("?sel=%1&query=%2").arg(sel).arg(qString);
+    QString str = QString("?sel=%1&query=%2").arg(id).arg(qString);
     QUrl url(g_php + str);
 
     request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
     request.setUrl(url);
 
+    QTimer *timeoutTimer = new QTimer(this);
+    timeoutTimer->setSingleShot(true);
+    timeoutTimer->start(5000);  // 5 seconds timeout
+
     QNetworkReply* reply = m_manager->get(request);
 
-    connect(reply, &QNetworkReply::finished, this, [=, this]
+    connect(timeoutTimer, &QTimer::timeout, this, [reply, id, this]() {
+        if (reply->isRunning()) {
+            qDebug() << "Request timed out. Aborting.";
+            reply->abort();
+        }
+        emit sQuery(id, QJsonDocument());
+    });
+
+    connect(reply, &QNetworkReply::finished, this, [reply, this]
     {
         auto buffer = reply->readAll();
         int token = buffer.indexOf('\r');
         if(token > 0)
         {
-            int id = buffer.mid(4, token - 4).toInt();
+            int sel = buffer.mid(4, token - 4).toInt();
 
             QJsonParseError err;
             QByteArray json = buffer.mid(token);
@@ -81,271 +96,130 @@ void ZDatabase::query(const QString& qString, uint sel)
 
 void ZDatabase::login(const QString &nick, const QString &password_hash)
 {
-    QNetworkRequest request;
+    QString str = QString("SELECT *,IF(password = '%1', '1', '2') AS valid FROM users WHERE nickname='%2' AND password='%3'").arg(g_pwDefault, nick, password_hash);
 
-    QString str = QString("?sel=1&query=SELECT *,IF(password = '%1', '1', '2') AS valid FROM users WHERE nickname='%2' AND password='%3'").arg(g_pwDefault, nick, password_hash);
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        QJsonParseError err;
-        QByteArray json = buffer.mid(buffer.indexOf('\r'));
-        auto doc = QJsonDocument::fromJson(json, &err);
-
-        qDebug() << doc;
-
-        if(err.error != QJsonParseError::NoError)
-        {
-            qDebug() << err.errorString();
-        }
-        auto firstline = doc[0];
-        if(firstline.isObject())
-        {
-            emit sLogin(QJsonDocument(firstline.toObject()));
-        }
-        else
-            emit sLogin(QJsonDocument::fromJson(ZDatabase::g_nouser));
-    });
+    queryAsync(str, id_login);
 }
-void ZDatabase::newUser(const QString &name, const QString &surname, const QString &email)
+void ZDatabase::editUser(const QString &name, const QString &surname, const QString &email, const QString& password)
 {
-    QNetworkRequest request;
-
     QString nick = QString("%1.%2").arg(name.toLower(), surname.toLower());
-    QString str = QString("?sel=2&query=REPLACE INTO users (nickname, name, surname, email, password) "
+    QString str = QString("REPLACE INTO users (nickname, name, surname, email, password) "
                         "values ('%1', '%2', '%3', '%4', '%5')")
-                    .arg(nick, name, surname, email, g_pwDefault);
+                    .arg(nick, name, surname, email, password);
 
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=2\r[]"))
-            emit sNewUser(nick);
-        else
-            emit sNewUser("## ERROR in newUser ##");
-    });
+    queryAsync(str, id_editUser);
 }
-void ZDatabase::removeUser(const QString &nick)
+void ZDatabase::editAsset(const QString &id, const QString &type, const QString &model, const QString &description, QString deployed)
 {
-    QNetworkRequest request;
-
-    QString str = QString("?sel=3&query=DELETE FROM users WHERE nickname='%1';")
-                      .arg(nick);
-
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=3\r[]"))
-            emit sRemoveUser(nick);
-        else
-            emit sRemoveUser("## ERROR in removeUser ##");
-    });
-}
-void ZDatabase::newAsset(const QString &id, const QString &type, const QString &model, const QString &description, QString deployed)
-{
-    QNetworkRequest request;
-
-    QString str = QString("?sel=4&query=REPLACE INTO assets (id, type, model, description) "
+    QString str = QString("REPLACE INTO assets (id, type, model, description) "
                           "values ('%1', '%2', '%3', '%4')")
                       .arg(id, type, model, description);
 
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=4\r[]"))
-            emit sNewAsset(id);
-        else
-            emit sRemoveUser("## ERROR in newAsset ##");
-    });
+    queryAsync(str, id_editAsset);
 }
-void ZDatabase::removeAsset(const QString &id)
+void ZDatabase::editTicket(const QString &id, const QString &nick, const QString &asset, const QString &status, const QString &description)
 {
-    QNetworkRequest request;
-
-    QString str = QString("?sel=5&query=DELETE FROM assets WHERE id='%1';")
-                      .arg(id);
-
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=5\r[]"))
-            emit sRemoveAsset(id);
-        else
-            emit sRemoveAsset("## ERROR in removeAsset ##");
-    });
-}
-void ZDatabase::newLink(const QString &asset, const QString &email)
-{
-    QNetworkRequest request;
-    QString str;
-    if(email.compare(".") == 0)
-    {
-        str = QString("?sel=6&query=REPLACE INTO asset_user (asset, user) "
-                              "VALUES ('%1', '.')")
-                          .arg(asset);
-    }
-    else
-    {
-        str = QString("?sel=6&query=REPLACE INTO asset_user (asset, user) "
-                      "VALUES ('%1', (SELECT nickname FROM users WHERE email='%2'))")
-                          .arg(asset, email);
-    }
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=6\r[]"))
-            emit sNewLink(asset);
-        else
-            emit sNewLink("## ERROR in newLink ##");
-    });
-}
-void ZDatabase::removeLink(const QString &asset, const QString &nick)
-{
-    QNetworkRequest request;
-
-    QString str = QString("?sel=7&query=DELETE FROM asset_user WHERE asset='%1'AND user='%2';")
-                      .arg(asset, nick);
-
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=7\r[]"))
-            emit sRemoveLink(asset);
-        else
-            emit sRemoveLink("## ERROR in removeLink ##");
-    });
-
-}
-void ZDatabase::openTicket(const QString &id, const QString &nick, const QString &asset, const QString &description)
-{
-    QNetworkRequest request;
-
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
-    ZEmoji emoji("🙋‍");
-
-    QString str = QString("?sel=8&query=INSERT INTO tickets (ticket, dt_open, status, user, asset, description) "
+    QString str = QString("INSERT INTO tickets (ticket, dt_open, status, user, asset, description) "
                           "values ('%1', '%2', '%3', '%4', '%5', '%6')")
-                      .arg(id, dt, emoji.m_html, nick, asset, description);
+                      .arg(id, dt, status, nick, asset, description);
 
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
+    queryAsync(str, id_editTicket);
+}
+void ZDatabase::editLink(const QString &asset, const QString &email)
+{
+    QString str;
+    if(email.compare(".") == 0)
     {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=8\r[]"))
-            emit sOpenTicket(id);
-        else
-            emit sOpenTicket("");
-    });
+        str = QString("REPLACE INTO asset_user (asset, user) "
+                      "VALUES ('%1', '.')")
+                  .arg(asset);
+    }
+    else
+    {
+        str = QString("REPLACE INTO asset_user (asset, user) "
+                      "VALUES ('%1', (SELECT nickname FROM users WHERE email='%2'))")
+                  .arg(asset, email);
+    }
 
+    queryAsync(str, id_editLink);
+}
+void ZDatabase::newStep(const QString &id, const QString &nick, const QString &status, const QString &description)
+{
+    QString str = QString("INSERT INTO steps (ticket, nickname, status, description) "
+                          "values ('%1', '%2', '%3', '%4')")
+                      .arg(id, nick, status, description);
+
+    queryAsync(str, id_newStep);
 }
 void ZDatabase::closeTicket(const QString &id)
 {
-    QNetworkRequest request;
-
     QDateTime now = QDateTime::currentDateTimeUtc();
     QString dt = now.toString("yyyy-MM-ddThh:mm:ss");
 
     ZEmoji emoji("👍");
 
-    QString str = QString("?sel=9&query=UPDATE tickets SET dt_close='%1', status='%2' WHERE ticket='%3'")
+    QString str = QString("UPDATE tickets SET dt_close='%1', status='%2' WHERE ticket='%3'")
                       .arg(dt, emoji.m_html, id);
 
-    QUrl url(g_php + str);
-
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
-
-    QNetworkReply* reply = m_manager->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=9\r[]"))
-            emit sCloseTicket(id);
-        else
-            emit sCloseTicket("");
-    });
-
+    queryAsync(str, id_closeTicket);
 }
-void ZDatabase::newTicketStep(const QString &id, const QString &nick, const QString &status, const QString &description)
+void ZDatabase::removeAsset(const QString &id)
 {
-    QNetworkRequest request;
+    QString str = QString("DELETE FROM assets WHERE id='%1';")
+    .arg(id);
 
-    QString str = QString("?sel=10&query=INSERT INTO steps (ticket, nickname, status, description) "
-                          "values ('%1', '%2', '%3', '%4')")
-                      .arg(id, nick, status, description);
+    queryAsync(str, id_removeAsset);
 
-    QUrl url(g_php + str);
+    QString lnk = QString("DELETE FROM asset_user WHERE asset='%1';")
+                      .arg(id);
 
-    request.setRawHeader( "User-Agent" , "Mozilla Firefox" );
-    request.setUrl(url);
+    queryAsync(lnk, id_removeLink);
+}
+void ZDatabase::removeUser(const QString &nick)
+{
+    QString str = QString("DELETE FROM users WHERE nickname='%1';")
+    .arg(nick);
 
-    QNetworkReply* reply = m_manager->get(request);
+    queryAsync(str, id_removeUser);
 
-    connect(reply, &QNetworkReply::finished, this, [=, this]
-    {
-        auto buffer = reply->readAll();
-        if(buffer.contains("sel=10\r[]"))
-            emit sNewTicketStep(id, nick);
-        else
-            emit sNewTicketStep("", "");
-    });
+    QString lnk = QString("DELETE FROM asset_user WHERE user='%1';")
+                      .arg(nick);
+
+    queryAsync(lnk, id_removeLink);
+}
+void ZDatabase::removeLink(const QString &asset, const QString &nick)
+{
+    QString str = QString("DELETE FROM asset_user WHERE asset='%1'AND user='%2';")
+                      .arg(asset, nick);
+
+    queryAsync(str, id_removeLink);
+}
+void ZDatabase::readUsers()
+{
+    QString str = "SELECT * FROM users ORDER BY users.surname";
+
+    queryAsync(str, id_readUsers);
 
 }
+void ZDatabase::readAssets(const QString &nick)
+{
+    QString str = QString("SELECT assets.id, assets.type, assets.model, assets.description, IFNULL(assets.deployed, '2025-01-01T00:00:00') AS date, asset_user.user FROM assets, asset_user WHERE asset_user.asset = assets.id AND (asset_user.user='%1' OR asset_user.user='.')").arg(nick);
 
+    queryAsync(str, id_readAssets);
+
+}
+void ZDatabase::readTickets(const QString &nick)
+{
+    QString str = QString("SELECT ticket, dt_open, user, asset, status, description FROM tickets WHERE user = '%1'").arg(nick);
+
+    queryAsync(str, id_readTickets);
+}
+void ZDatabase::readSteps(const QString &id)
+{
+    QString str = QString("SELECT ticket, nickname, status, description FROM steps WHERE ticket = '%1'").arg(id);
+
+    queryAsync(str, id_readSteps);
+}
