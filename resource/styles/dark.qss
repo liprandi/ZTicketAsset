@@ -1,7 +1,7 @@
 QWidget {
     background-color: #2e2e2e;
     color: #eeeeee;
-    font-family: "Emoji", "Segoe UI", "Roboto", "Arial";
+    font-family: "Roboto", "Arial", "Emoji", "Segoe UI";
     font-size: 10.5pt;
 }
 
@@ -79,4 +79,30 @@ QScrollBar::handle {
 
 QScrollBar::handle:hover {
     background: #777;
+}
+
+QTableWidget {
+    gridline-color: #555;
+    border: 1px solid #444;
+    selection-background-color: #308030;
+    selection-color: white;
+    alternate-background-color: #383838;
+    background-color: #2e2e2e;
+}
+
+QTableWidget::item {
+    border: 1px solid #444;
+    padding: 6px;
+}
+
+QHeaderView::section {
+    background-color: #444;
+    color: #eee;
+    padding: 4px;
+    border: 1px solid #555;
+    font-weight: bold;
+}
+
+QTableWidget::item:hover {
+    background-color: #505050;
 }

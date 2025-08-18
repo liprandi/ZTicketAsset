@@ -74,7 +74,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedPane">
         <property name="currentIndex">
-         <number>1</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="_0_splash">
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -101,8 +101,8 @@
         </widget>
         <widget class="ZLogin" name="_1_login"/>
         <widget class="QWidget" name="_2_assets">
-         <layout class="QFormLayout" name="formLayout_2">
-          <item row="0" column="0" colspan="2">
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
+          <item>
            <widget class="QLabel" name="label_2">
             <property name="font">
              <font>
@@ -125,6 +125,9 @@
              <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
+          </item>
+          <item>
+           <widget class="ZAssetsWidget" name="assets" native="true"/>
           </item>
          </layout>
         </widget>
@@ -273,6 +276,12 @@
    <class>ZLogin</class>
    <extends>QWidget</extends>
    <header>zlogin.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ZAssetsWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">zassetswidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

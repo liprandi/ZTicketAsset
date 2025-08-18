@@ -11,6 +11,7 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network LinguistTools)
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -47,6 +48,8 @@ set(TS_FILES translations/app_it.ts)
 qt_add_executable(ZTicketAsset
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
+    zassetswidget.h zassetswidget.cpp zassetswidget.ui
+    zjsontablewidget.h zjsontablewidget.cpp
 )
 
 # lupdate: extract translatable strings
@@ -64,5 +67,6 @@ target_link_libraries(ZTicketAsset PRIVATE
     Qt6::Widgets
     Qt6::Network
 )
+target_link_libraries(ZTicketAsset PRIVATE Qt6::Widgets)
 
 qt_finalize_executable(ZTicketAsset)

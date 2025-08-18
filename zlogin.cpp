@@ -9,8 +9,7 @@ ZLogin::ZLogin(QWidget *parent)
     ui->setupUi(this);
 
     connect(ui->pbLogin, &QPushButton::clicked, this, [=, this]{
-        if(g_backend)
-        {
+        if(g_backend) {
             QStringList param;
 
             param.push_back(ui->leUser->text());
@@ -18,6 +17,7 @@ ZLogin::ZLogin(QWidget *parent)
             g_backend->login(param);
         }
     });
+
 }
 
 ZLogin::~ZLogin()

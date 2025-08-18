@@ -1,4 +1,4 @@
-    #include "mainwindow.h"
+#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <cassert>
 
@@ -12,11 +12,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_menu.push_back({tr("About"), ":/icons/icon0"});
     m_menu.push_back({tr("Login"), ":/icons/icon1"});
-    m_menu.push_back({tr("Ticket"), ":/icons/icon2"});
-    m_menu.push_back({tr("Asset"), ":/icons/icon3"});
+    m_menu.push_back({tr("Asset"), ":/icons/icon2"});
+    m_menu.push_back({tr("Ticket"), ":/icons/icon3"});
     m_menu.push_back({tr("Step"), ":/icons/icon4"});
 
-    QList<QAction*> act_menu = {0, ui->actionLogin, ui->actionAsset, ui->actionTicket, ui->actionAsset};
+    QList<QAction*> act_menu = {0, ui->actionLogin, ui->actionAsset, ui->actionTicket, ui->actionStep};
 
 
     for(int i = 0; i < m_menu.size() && i < act_menu.size(); i++) {
@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
         const auto& item = m_menu[i];
         auto action = ui->sidemenu->addAction(item[0],
                           QIcon(item[1]));
-        action->setEnabled(i < 2);
+        action->setEnabled(i < 3);
         connect(action, &QAction::triggered, this, [=, this](bool){
             assert(i < m_menu.size());
             ui->stackedPane->setCurrentIndex(i);
@@ -54,6 +54,10 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(ui->pbRefresh, &QPushButton::clicked, this, [this](bool){
         m_backend.readUsers();
+    });
+    connect(ui->stackedPane, &QStackedWidget::currentChanged, this, [this](int index){
+        if(index == 2)
+            ui->assets->populate();
     });
     m_backend.login({"agostino.beltrando", "C4mb14m1"});
 }
