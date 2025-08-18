@@ -74,7 +74,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedPane">
         <property name="currentIndex">
-         <number>2</number>
+         <number>4</number>
         </property>
         <widget class="QWidget" name="_0_splash">
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -132,8 +132,8 @@
          </layout>
         </widget>
         <widget class="QWidget" name="_3_tickets">
-         <layout class="QFormLayout" name="formLayout_3">
-          <item row="0" column="0" colspan="2">
+         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1">
+          <item>
            <widget class="QLabel" name="label_3">
             <property name="font">
              <font>
@@ -157,11 +157,14 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="ZTicketsWidget" name="tickets" native="true"/>
+          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="_4_steps">
-         <layout class="QFormLayout" name="formLayout_4">
-          <item row="0" column="0" colspan="2">
+         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,1">
+          <item>
            <widget class="QLabel" name="label_4">
             <property name="font">
              <font>
@@ -184,6 +187,9 @@
              <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
+          </item>
+          <item>
+           <widget class="ZStepsWidget" name="steps" native="true"/>
           </item>
          </layout>
         </widget>
@@ -282,6 +288,18 @@
    <class>ZAssetsWidget</class>
    <extends>QWidget</extends>
    <header location="global">zassetswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ZTicketsWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">zticketswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ZStepsWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">zstepswidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

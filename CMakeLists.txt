@@ -28,6 +28,10 @@ set(PROJECT_SOURCES
     sidebar.cpp
     zdatabase.cpp
     zemoji.cpp
+    zjsontablewidget.cpp
+    zassetswidget.cpp
+    zticketswidget.cpp
+    zstepswidget.cpp
 
     mainwindow.h
     zlogin.h
@@ -35,10 +39,17 @@ set(PROJECT_SOURCES
     sidebar.h
     zdatabase.h
     zemoji.h
+    zjsontablewidget.h
+    zassetswidget.h
+    zticketswidget.h
+    zstepswidget.h
     utility/zplaceholderlineedit.h
 
     mainwindow.ui
     zlogin.ui
+    zassetswidget.ui
+    zticketswidget.ui
+    zstepswidget.ui
     resource.qrc
 )
 
@@ -48,8 +59,6 @@ set(TS_FILES translations/app_it.ts)
 qt_add_executable(ZTicketAsset
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
-    zassetswidget.h zassetswidget.cpp zassetswidget.ui
-    zjsontablewidget.h zjsontablewidget.cpp
 )
 
 # lupdate: extract translatable strings

@@ -1,7 +1,7 @@
 QWidget {
     background-color: #2e2e2e;
     color: #eeeeee;
-    font-family: "Roboto", "Arial", "Emoji", "Segoe UI";
+    font-family: "Segoe UI", "Roboto", "Arial";
     font-size: 10.5pt;
 }
 
@@ -86,8 +86,8 @@ QTableWidget {
     border: 1px solid #444;
     selection-background-color: #308030;
     selection-color: white;
+    background-color: #1e1e1e;
     alternate-background-color: #383838;
-    background-color: #2e2e2e;
 }
 
 QTableWidget::item {

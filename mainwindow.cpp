@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
         const auto& item = m_menu[i];
         auto action = ui->sidemenu->addAction(item[0],
                           QIcon(item[1]));
-        action->setEnabled(i < 3);
+        action->setEnabled(i < 5);
         connect(action, &QAction::triggered, this, [=, this](bool){
             assert(i < m_menu.size());
             ui->stackedPane->setCurrentIndex(i);
@@ -56,8 +56,19 @@ MainWindow::MainWindow(QWidget *parent)
         m_backend.readUsers();
     });
     connect(ui->stackedPane, &QStackedWidget::currentChanged, this, [this](int index){
-        if(index == 2)
+        switch (index) {
+        case 2:
             ui->assets->populate();
+            break;
+        case 3:
+            ui->tickets->populate();
+            break;
+        case 4:
+            ui->steps->populate();
+            break;
+        default:
+            break;
+        }
     });
     m_backend.login({"agostino.beltrando", "C4mb14m1"});
 }
