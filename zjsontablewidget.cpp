@@ -5,10 +5,14 @@
 
 ZJsonTableWidget::ZJsonTableWidget(QWidget *parent)
     : QTableWidget{parent}
-{}
+    , m_rowSelected(-1)
+{
+    setItemDelegate(new BorderDelegate(this));
+}
 
 void ZJsonTableWidget::populate(const QJsonArray& records)
 {
+    clear();
     if (records.isEmpty() || !records.at(0).isObject()) {
         qDebug() << "No records or invalid format";
         return;
@@ -23,6 +27,7 @@ void ZJsonTableWidget::populate(const QJsonArray& records)
     setColumnCount(headers.size());
     setRowCount(records.size());
     setHorizontalHeaderLabels(headers);
+    setAlternatingRowColors(true);
 
     // Fill rows
     for (int row = 0; row < records.size(); ++row) {
@@ -56,9 +61,9 @@ void ZJsonTableWidget::populate(const QJsonArray& records)
         QPushButton *editBtn = new QPushButton("Edit", btnWidget);
         QPushButton *delBtn  = new QPushButton("Delete", btnWidget);
         editBtn->setMinimumHeight(32);
-        editBtn->setMinimumWidth(50);
+        editBtn->setMinimumWidth(100);
         delBtn->setMinimumHeight(32);
-        editBtn->setMinimumWidth(50);
+        delBtn->setMinimumWidth(100);
 
         QHBoxLayout *layout = new QHBoxLayout(btnWidget);
         layout->addWidget(editBtn);
@@ -68,8 +73,9 @@ void ZJsonTableWidget::populate(const QJsonArray& records)
         btnWidget->setLayout(layout);
 
         setCellWidget(row, headers.size()-1, btnWidget);
+        setRowHeight(row, 64);
 
-        // Connect buttons
+            // Connect buttons
         QObject::connect(editBtn, &QPushButton::clicked, this, [this, row]() {
             qDebug() << "Edit row" << row;
             // TODO: open editor dialog or inline edit
@@ -79,8 +85,17 @@ void ZJsonTableWidget::populate(const QJsonArray& records)
             qDebug() << "Delete row" << row;
             removeRow(row);
         });
+
+        connect(this, &QTableWidget::itemClicked,
+                this, [this](QTableWidgetItem *item){
+                    select(item->row());
+                    repaint();
+                    emit selectionChange(selected());
+                });
+
     }
 
     resizeColumnsToContents();
+    setColumnWidth(columnCount() -  1, 230);
 
 }

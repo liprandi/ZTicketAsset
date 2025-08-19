@@ -59,6 +59,7 @@ set(TS_FILES translations/app_it.ts)
 qt_add_executable(ZTicketAsset
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
+    dlgeditasset.h dlgeditasset.cpp dlgeditasset.ui
 )
 
 # lupdate: extract translatable strings

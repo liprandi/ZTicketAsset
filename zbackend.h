@@ -16,14 +16,21 @@ public:
     explicit ZBackEnd(QObject *parent = nullptr);
     virtual ~ZBackEnd();
 
-    QJsonObject credentials(){return m_credentials;}
+    QJsonArray users() const {return m_users;}
     QJsonArray assets() const {return m_assets;}
     QJsonArray tickets() const {return m_tickets;}
     QJsonArray steps() const {return m_steps;}
+    QJsonObject credentials(){return m_credentials;}
+    QJsonObject asset() const {return m_asset;}
+    QJsonObject ticket() const {return m_ticket;}
+    QJsonObject step() const {return m_step;}
 
     void login(const QStringList &credentials);
     bool selectAsset(const QString& asset);
     bool selectTicket(const QString& ticket);
+    bool selectAsset(int index);
+    bool selectTicket(int index);
+    bool selectStep(int index);
     void editUser(const QStringList &credentials);
     void editTicket(const QStringList &ticket);
     void editAsset(const QStringList &newasset, QDateTime deployed);
@@ -57,6 +64,7 @@ private:
     QJsonObject m_credentials;
     QJsonObject m_ticket;
     QJsonObject m_asset;
+    QJsonObject m_step;
 
     QJsonArray m_users;
     QJsonArray m_assets;

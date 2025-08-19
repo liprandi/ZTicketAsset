@@ -9,6 +9,12 @@ ZStepsWidget::ZStepsWidget(QWidget *parent)
     , ui(new Ui::ZStepsWidget)
 {
     ui->setupUi(this);
+    connect(ui->StepTable, &ZJsonTableWidget::selectionChange, this, [this](int sel){
+        if(g_backend){
+            if(g_backend->selectStep(sel))
+                g_backend->readUsers();
+        }
+    });
 }
 
 ZStepsWidget::~ZStepsWidget()

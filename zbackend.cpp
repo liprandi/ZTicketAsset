@@ -58,9 +58,27 @@ bool ZBackEnd::selectAsset(const QString& asset)
 
     if(found) {
         qDebug() << "Asset selected: " << m_asset;
-        m_update = 10;
     }
     return found;
+}
+
+bool ZBackEnd::selectAsset(int index)
+{
+    bool ok = (index >= 0 && index < m_assets.count() && m_assets[index].isObject());
+
+    if(ok) {
+
+        QJsonObject obj = m_assets[index].toObject();
+        if(obj.contains("id"))
+            m_asset = obj;
+        else
+            ok = false;
+    }
+
+    if(ok) {
+        qDebug() << "Asset selected: " << m_asset;
+    }
+    return ok;
 }
 
 bool ZBackEnd::selectTicket(const QString& ticket)
@@ -84,6 +102,47 @@ bool ZBackEnd::selectTicket(const QString& ticket)
     return found;
 }
 
+bool ZBackEnd::selectTicket(int index)
+{
+    bool ok = (index >= 0 && index < m_tickets.count() && m_tickets[index].isObject());
+
+    if(ok) {
+        QJsonObject obj = m_tickets[index].toObject();
+        if(obj.contains("ticket")) {
+            ok = selectAsset(obj["asset"].toString());
+            if(ok)
+                m_ticket = obj;
+        }
+        else
+            ok = false;
+    }
+
+    if(ok) {
+        qDebug() << "Ticket selected: " << m_ticket;
+    }
+    return ok;
+}
+
+bool ZBackEnd::selectStep(int index)
+{
+    bool ok = (index >= 0 && index < m_steps.count() && m_steps[index].isObject());
+
+    if(ok) {
+        QJsonObject obj = m_steps[index].toObject();
+        if(obj.contains("ticket")) {
+            ok = selectTicket(obj["ticket"].toString());
+            if(ok)
+                m_step = obj;
+        }
+        else
+            ok = false;
+    }
+
+    if(ok) {
+        qDebug() << "Step selected: " << m_step;
+    }
+    return ok;
+}
 
 // [0] = Name
 // [1] = Surname

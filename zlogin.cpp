@@ -8,6 +8,16 @@ ZLogin::ZLogin(QWidget *parent)
 {
     ui->setupUi(this);
 
+    if(g_backend && g_backend->credentials().contains("nickname")){
+        const auto cred = g_backend->credentials();
+        ui->leUser->setText(cred["nickname"].toString("."));
+        ui->lePassword->setText("C4mb14m1");
+    }
+    else {
+        ui->leUser->setText("");
+        ui->lePassword->setText("");
+    }
+
     connect(ui->pbLogin, &QPushButton::clicked, this, [=, this]{
         if(g_backend) {
             QStringList param;
